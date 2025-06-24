@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do PWA</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <h1>📋 To-Do List</h1>
-    <input type="text" id="taskInput" placeholder="Aggiungi un task...">
-    <button onclick="addTask()">➕</button>
-    <ul id="taskList"></ul>
+    <h1>To-Do List</h1>
+    <input type="text" placeholder="Nuovo task">
+    <button>Aggiungi</button>
+    <ul></ul>
 
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log("✅ Service Worker registrato"))
+                .catch(err => console.error("❌ Errore Service Worker", err));
         }
     </script>
 </body>

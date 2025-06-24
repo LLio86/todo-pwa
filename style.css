@@ -1,26 +1,21 @@
 body {
     font-family: sans-serif;
     text-align: center;
-    margin: 2rem;
-    background: #f0f0f0;
+    padding: 20px;
 }
 input {
-    padding: 0.5rem;
-    font-size: 1rem;
+    padding: 10px;
+    font-size: 1em;
 }
 button {
-    padding: 0.5rem;
-    font-size: 1rem;
-    margin-left: 0.5rem;
+    padding: 10px;
+    font-size: 1em;
 }
 ul {
-    list-style: none;
+    list-style-type: none;
     padding: 0;
 }
 li {
-    background: white;
-    margin: 0.5rem auto;
-    padding: 0.5rem;
-    width: 200px;
-    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
 }
