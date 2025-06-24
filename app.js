@@ -1,3 +1,11 @@
+if ("Notification" in window) {
+  Notification.requestPermission().then(permission => {
+    console.log("Permesso notifiche:", permission);
+  });
+}
+
+
+
 const input = document.getElementById('taskInput');
 const list = document.getElementById('taskList');
 
