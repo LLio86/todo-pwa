@@ -4,115 +4,109 @@
   <meta charset="UTF-8">
   <title>Pulizia Strade Firenze</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+    integrity="sha256-sA+e2FodKXgLld6CHkRkMlLtDgnFvA0B3F6Z58Dcn6A=" 
+    crossorigin=""
+  />
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-    }
     #map {
       height: 50vh;
       width: 100%;
     }
-    #info {
+    body {
+      font-family: sans-serif;
       padding: 1em;
-      font-size: 1rem;
     }
-    .label {
-      font-weight: bold;
+    .info {
+      margin-top: 1em;
     }
   </style>
 </head>
 <body>
-
+  <h2>Pulizia Strade a Firenze</h2>
   <div id="map"></div>
-
-  <div id="info">
-    <div><span class="label">Indirizzo:</span> <span id="address">Caricamento...</span></div>
-    <div><span class="label">Coordinate:</span> <span id="coords">Caricamento...</span></div>
-    <div><span class="label">Pulizia strade:</span> <span id="cleaning">Caricamento...</span></div>
+  <div class="info">
+    <p><strong>Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
+    <p><strong>Coordinate GPS:</strong> <span id="coords">-</span></p>
+    <p><strong>Pulizia strade:</strong> <span id="pulizia">Ricerca in corso...</span></p>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+    integrity="sha256-o9N1j7kFZPip+5tqga7nXkPko6DgYzi6Gs+CtiGAZ5A=" 
+    crossorigin="">
+  </script>
 
   <script>
-    const map = L.map('map').setView([43.7696, 11.2558], 15); // Firenze centro
-    const addressSpan = document.getElementById('address');
-    const coordsSpan = document.getElementById('coords');
-    const cleaningSpan = document.getElementById('cleaning');
-    let puliziaGeoJSON = null;
+    const addressEl = document.getElementById("address");
+    const coordsEl = document.getElementById("coords");
+    const puliziaEl = document.getElementById("pulizia");
+    const map = L.map('map').setView([43.7696, 11.2558], 15); // centro Firenze
 
-    // Aggiungi tile layer OSM
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19
     }).addTo(map);
 
-    // Marker utente
-    const marker = L.marker([0, 0]).addTo(map);
+    let pulizieGeoJSON = null;
 
-    // Cerca pulizia strade per via
-    function cercaPulizia(viaUtente) {
-      if (!puliziaGeoJSON) return "Dati non disponibili";
-      viaUtente = viaUtente.trim().toLowerCase();
-      for (let feature of puliziaGeoJSON.features) {
-        const viaPulizia = feature.properties.nome_via?.toLowerCase() || '';
-        if (viaUtente.includes(viaPulizia)) {
-          const giorno = feature.properties.giorno || '';
-          const orario = feature.properties.orario || '';
-          return `${giorno} ${orario}`.trim();
-        }
+    // Carica il file GeoJSON
+    fetch('pulizia_firenze.geojson')
+      .then(response => response.json())
+      .then(data => {
+        pulizieGeoJSON = data;
+        console.log("Dati pulizia caricati:", data);
+      });
+
+    function getPuliziaInfo(via) {
+      if (!pulizieGeoJSON) return "Dati non disponibili";
+      const features = pulizieGeoJSON.features;
+
+      const match = features.find(f => {
+        const nomeVia = f.properties.DENOMINAZIO?.toLowerCase() || "";
+        return via.toLowerCase().includes(nomeVia);
+      });
+
+      if (match) {
+        return `Giorno: ${match.properties.GIORNO}, Orario: ${match.properties.ORAINIZIO} - ${match.properties.ORAFINE}, Tipo: ${match.properties.TIPOPULIZIA}`;
+      } else {
+        return "Nessuna pulizia programmata per questa via.";
       }
-      return "Non trovata per questa via";
     }
 
-    // Aggiorna indirizzo e dati
-    function updateAddress(lat, lon) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-        .then(response => response.json())
+    function reverseGeocode(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+        .then(res => res.json())
         .then(data => {
-          const indirizzo = data.display_name || "Indirizzo non trovato";
-          addressSpan.textContent = indirizzo;
-          coordsSpan.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-
-          const via = indirizzo.split(',')[0].toLowerCase();
-          cleaningSpan.textContent = cercaPulizia(via);
-        })
-        .catch(err => {
-          addressSpan.textContent = "Errore nel recupero dell'indirizzo";
-          cleaningSpan.textContent = "Errore";
+          const via = data.address.road || data.display_name;
+          addressEl.textContent = via;
+          const info = getPuliziaInfo(via);
+          puliziaEl.textContent = info;
         });
     }
 
-    // Carica GeoJSON e poi avvia la geolocalizzazione
-    fetch('pulizia_firenze.geojson')
-      .then(res => res.json())
-      .then(data => {
-        puliziaGeoJSON = data;
+    function onLocationFound(e) {
+      const lat = e.latitude;
+      const lon = e.longitude;
+      coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
-        navigator.geolocation.watchPosition(
-          position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            map.setView([lat, lon], 17);
-            marker.setLatLng([lat, lon]);
-            updateAddress(lat, lon);
-          },
-          err => {
-            alert("Geolocalizzazione fallita: " + err.message);
-          },
-          { enableHighAccuracy: true }
-        );
-      })
-      .catch(err => {
-        console.error("Errore nel caricamento del GeoJSON:", err);
-        cleaningSpan.textContent = "Errore nel caricamento dati";
-      });
+      L.marker([lat, lon]).addTo(map)
+        .bindPopup("Sei qui")
+        .openPopup();
+      
+      map.setView([lat, lon], 17);
+
+      reverseGeocode(lat, lon);
+    }
+
+    function onLocationError(e) {
+      alert("Errore nel trovare la posizione: " + e.message);
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      pos => onLocationFound(pos.coords),
+      err => onLocationError(err)
+    );
   </script>
-
 </body>
 </html>
