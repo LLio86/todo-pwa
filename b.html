@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Pulizia Strade Firenze</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+    #map {
+      height: 50vh;
+      width: 100%;
+    }
+    #info {
+      padding: 1em;
+      font-size: 1rem;
+    }
+    .label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <div id="info">
+    <div><span class="label">Indirizzo:</span> <span id="address">Caricamento...</span></div>
+    <div><span class="label">Coordinate:</span> <span id="coords">Caricamento...</span></div>
+    <div><span class="label">Pulizia strade:</span> <span id="cleaning">Caricamento...</span></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map').setView([43.7696, 11.2558], 15); // Firenze centro
+    const addressSpan = document.getElementById('address');
+    const coordsSpan = document.getElementById('coords');
+    const cleaningSpan = document.getElementById('cleaning');
+    let puliziaGeoJSON = null;
+
+    // Tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Marker per la posizione utente
+    const marker = L.marker([0, 0]).addTo(map);
+
+    // Carica GeoJSON con info pulizia
+    fetch('pulizia_firenze.geojson')
+      .then(res => res.json())
+      .then(data => {
+        puliziaGeoJSON = data;
+      });
+
+    // Cerca pulizia per via
+    function cercaPulizia(viaUtente) {
+      if (!puliziaGeoJSON) return "Dati non pronti";
+      for (let feature of puliziaGeoJSON.features) {
+        const viaPulizia = feature.properties.nome_via?.toLowerCase() || '';
+        if (viaUtente.includes(viaPulizia)) {
+          return (feature.properties.giorno || "") + ' ' + (feature.properties.orario || "");
+        }
+      }
+      return "Non trovata per questa via";
+    }
+
+    // Ottieni indirizzo da coordinate
+    function updateAddress(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(response => response.json())
+        .then(data => {
+          const indirizzo = data.display_name || "Indirizzo non trovato";
+          addressSpan.textContent = indirizzo;
+          coordsSpan.textContent = lat.toFixed(5) + ", " + lon.toFixed(5);
+
+          const via = indirizzo.split(',')[0].toLowerCase();
+          cleaningSpan.textContent = cercaPulizia(via);
+        })
+        .catch(err => {
+          addressSpan.textContent = "Errore nel recupero dell'indirizzo";
+          cleaningSpan.textContent = "Errore";
+        });
+    }
+
+    // Geolocalizzazione utente
+    navigator.geolocation.watchPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        map.setView([lat, lon], 17);
+        marker.setLatLng([lat, lon]);
+        updateAddress(lat, lon);
+      },
+      err => {
+        alert("Geolocalizzazione fallita: " + err.message);
+      },
+      { enableHighAccuracy: true }
+    );
+  </script>
+
+</body>
+</html>
