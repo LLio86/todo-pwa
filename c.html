@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pulizia Strade da GPS</title>
+</head>
+<body>
+  <h1>Verifica Pulizia Strade dalla tua Posizione</h1>
+  <button id="getLocationBtn">Mostra Pulizia Strada</button>
+  <pre id="output"></pre>
+
+  <script>
+    const output = document.getElementById("output");
+    const getLocationBtn = document.getElementById("getLocationBtn");
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(`Errore HTTP: ${res.status}`);
+      return res.json();
+    }
+
+    async function reverseGeocode(lat, lon) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+      const data = await fetchJson(url, { headers: { "User-Agent": "PuliziaStradeApp/1.0" } });
+      return data.address.road || data.address.pedestrian || data.address.footway || null;
+    }
+
+    async function findViaId(viaName) {
+      const url = `https://www2.aliaserviziambientali.it/puliziastrade/main/get_indirizzi`;
+      const data = await fetchJson(url);
+      // Cerca via esatta o simile (case insensitive)
+      const via = data.find(item => item.via.toLowerCase() === viaName.toLowerCase());
+      return via ? via.id : null;
+    }
+
+    async function getTratti(viaId) {
+      const url = `https://www2.aliaserviziambientali.it/puliziastrade/main/get_tratti`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `id_via=${viaId}`
+      });
+      if (!response.ok) throw new Error(`Errore get_tratti: ${response.status}`);
+      return response.json();
+    }
+
+    async function calcolaData(idTratto, idVia) {
+      const url = `https://www2.aliaserviziambientali.it/puliziastrade/pulizie/calcola_data`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `id_tratto=${idTratto}&id_via=${idVia}`
+      });
+      if (!response.ok) throw new Error(`Errore calcola_data: ${response.status}`);
+      return response.json();
+    }
+
+    async function main() {
+      output.textContent = "Ottengo la tua posizione GPS...";
+      if (!navigator.geolocation) {
+        output.textContent = "Geolocalizzazione non supportata dal browser.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          output.textContent = `Latitudine: ${lat.toFixed(5)}, Longitudine: ${lon.toFixed(5)}\nFacendo reverse geocoding...`;
+
+          const viaName = await reverseGeocode(lat, lon);
+          if (!viaName) {
+            output.textContent = "Non sono riuscito a determinare la via dalla posizione.";
+            return;
+          }
+          output.textContent += `\nVia trovata: ${viaName}\nCerco via negli indirizzi...`;
+
+          const viaId = await findViaId(viaName);
+          if (!viaId) {
+            output.textContent += `\nVia non trovata nei dati di pulizia strade.`;
+            return;
+          }
+
+          output.textContent += `\nVia ID: ${viaId}\nOttengo tratti della via...`;
+          const tratti = await getTratti(viaId);
+          if (tratti.length === 0) {
+            output.textContent += `\nNessun tratto trovato per questa via.`;
+            return;
+          }
+
+          output.textContent += `\nTratti trovati: ${tratti.length}\nCalcolo date pulizia...`;
+
+          // Per semplicità prendi il primo tratto
+          const tratto = tratti[0];
+          const dataPulizia = await calcolaData(tratto.id_tratto, viaId);
+
+          output.textContent += `\nProssime date di pulizia:\n`;
+          dataPulizia.forEach((item) => {
+            output.textContent += `- ${item.data} (${item.descrizione})\n`;
+          });
+        } catch (err) {
+          output.textContent = "Errore: " + err.message;
+        }
+      }, (err) => {
+        output.textContent = "Errore geolocalizzazione: " + err.message;
+      });
+    }
+
+    getLocationBtn.onclick = main;
+  </script>
+</body>
+</html>
