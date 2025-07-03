@@ -1,21 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>La mia posizione in tempo reale</title>
+  <title>Localizzazione in tempo reale</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
     #map {
-      height: 100vh;
+      height: 50vh;
+      width: 100%;
+    }
+    #info {
+      padding: 15px;
+      font-size: 1.1em;
+    }
+    .label {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+
   <div id="map"></div>
+
+  <div id="info">
+    <div><span class="label">Indirizzo:</span> <span id="address">Caricamento...</span></div>
+    <div><span class="label">Coordinate:</span> <span id="coords">--</span></div>
+  </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([0, 0], 15); // posizione iniziale provvisoria
+    const map = L.map('map').setView([0, 0], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -23,13 +43,31 @@
 
     const marker = L.marker([0, 0]).addTo(map);
 
+    const addressSpan = document.getElementById("address");
+    const coordsSpan = document.getElementById("coords");
+
+    function updateAddress(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(response => response.json())
+        .then(data => {
+          addressSpan.textContent = data.display_name || "Indirizzo non trovato";
+        })
+        .catch(err => {
+          addressSpan.textContent = "Errore nel recupero dell'indirizzo";
+        });
+    }
+
     if ('geolocation' in navigator) {
       navigator.geolocation.watchPosition(
         position => {
           const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          marker.setLatLng([lat, lng]);
-          map.setView([lat, lng], 15);
+          const lon = position.coords.longitude;
+
+          marker.setLatLng([lat, lon]);
+          map.setView([lat, lon], 15);
+
+          coordsSpan.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+          updateAddress(lat, lon);
         },
         error => {
           alert('Errore nel rilevare la posizione: ' + error.message);
@@ -44,5 +82,6 @@
       alert("Geolocalizzazione non supportata dal browser.");
     }
   </script>
+
 </body>
 </html>
