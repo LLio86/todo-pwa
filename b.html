@@ -54,28 +54,59 @@
         pulizieGeoJSON = data;
         console.log("Dati pulizia caricati:", data);
       });
+	  
+	  
+	  function estraiValoreDescrizione(html, chiave) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  const items = div.querySelectorAll("li");
+  for (const li of items) {
+    const nome = li.querySelector(".atr-name")?.textContent?.trim().toLowerCase();
+    const valore = li.querySelector(".atr-value")?.textContent?.trim();
+    if (nome === chiave.toLowerCase()) {
+      return valore;
+    }
+  }
+  return null;
+}
+
+	  
     
-    function getPuliziaInfo(via) {
+function getPuliziaInfo(via) {
   if (!pulizieGeoJSON) return "Dati non disponibili";
   const features = pulizieGeoJSON.features;
 
-  // Trova la prima feature che contiene la via cercata nel campo "indirizzo"
   const match = features.find(f => {
-    const indirizzo = f.properties.indirizzo?.toLowerCase() || "";
-    return via.toLowerCase().includes(indirizzo);
+    const desc = f.properties.description || "";
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+    return indirizzo && via.toLowerCase().includes(indirizzo);
   });
 
   if (match) {
-    // Map giorno abbreviato a nome completo (opzionale)
-    const giorni = {LU: "Lunedì", MA: "Martedì", ME: "Mercoledì", GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"};
-    const giornoCod = match.properties.giorno_settimana || "ND";
+    const desc = match.properties.description || "";
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
+    const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
+    const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
+    const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
+    const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+    const giorni = {
+      LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+      GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+    };
     const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
-    console.log('Match trovato:', match.properties.name);
-    return `Pulizia strade: Indirizzo: ${match.properties.description}`;
+
+    return `
+      <strong>${indirizzo}</strong><br>
+      Pulizia ogni <strong>${giornoNome}</strong><br>
+      Dalle <strong>${oraInizio}</strong> alle <strong>${oraFine}</strong><br>
+      <em>${tratto}</em>
+    `;
   } else {
     return "Nessuna pulizia programmata per questa via.";
   }
 }
+
 
     function reverseGeocode(lat, lon) {
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
