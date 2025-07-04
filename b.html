@@ -70,7 +70,7 @@
     const giornoCod = match.properties.giorno_settimana || "ND";
     const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
     console.log('Match trovato:', match.properties.name);
-    return `Pulizia strade: Giorno: ${giornoNome}, Orario: ${match.properties.ora_inizio} - ${match.properties.ora_fine}, Indirizzo: ${match.properties.indirizzo}`;
+    return `Pulizia strade: Giorno: ${giornoNome}, Orario: ${match.properties.ora_inizio} - ${match.properties.ora_fine}, Indirizzo: ${match.properties.description}`;
   } else {
     return "Nessuna pulizia programmata per questa via.";
   }
