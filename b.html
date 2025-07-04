@@ -53,7 +53,10 @@
         pulizieGeoJSON = data;
         console.log("Dati pulizia caricati:", data);
       });
-
+    
+    features.forEach(f => console.log(f.properties.indirizzo));
+    console.log('userStreetNorm:', userStreetNorm);
+    
     function getPuliziaInfo(via) {
   if (!pulizieGeoJSON) return "Dati non disponibili";
   const features = pulizieGeoJSON.features;
