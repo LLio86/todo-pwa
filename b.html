@@ -56,6 +56,8 @@
       });
 	  
 	  
+
+	  
 	  function estraiValoreDescrizione(html, chiave) {
   const div = document.createElement("div");
   div.innerHTML = html;
@@ -125,6 +127,39 @@ function getPuliziaInfo(via) {
 }
 
 
+function calcolaProssimaPulizia(giornoCod, settimaneAbilitate) {
+  const oggi = new Date();
+  let mese = oggi.getMonth();
+  let anno = oggi.getFullYear();
+
+  const giorniSettimana = ["DO", "LU", "MA", "ME", "GI", "VE", "SA"];
+  const targetGiorno = giorniSettimana.indexOf(giornoCod);
+
+  // Cerca nei prossimi 2 mesi
+  for (let m = 0; m < 2; m++) {
+    for (let settimana of settimaneAbilitate) {
+      // Calcola il primo giorno del mese corrente
+      const primoGiornoDelMese = new Date(anno, mese, 1);
+      let giorno = 1 + (settimana - 1) * 7;
+
+      // Cerca il giorno esatto (es. giovedì della 2ª settimana)
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(anno, mese, giorno + i);
+        if (d.getMonth() !== mese) continue; // non oltrepassare il mese
+        if (d.getDay() === targetGiorno && d >= oggi) return d;
+      }
+    }
+    // mese successivo
+    mese = (mese + 1) % 12;
+    if (mese === 0) anno++;
+  }
+
+  return new Date(); // fallback: oggi
+}
+
+
+
+
 
     function reverseGeocode(lat, lon) {
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
@@ -137,28 +172,45 @@ function getPuliziaInfo(via) {
         });
     }
 
-    function onLocationFound(e) {
-      const lat = e.latitude;
-      const lon = e.longitude;
-      coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+let marker = null;
 
-      L.marker([lat, lon]).addTo(map)
-        .bindPopup("Sei qui")
-        .openPopup();
-      
-      map.setView([lat, lon], 17);
+function aggiornaPosizione(lat, lon) {
+  coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
-      reverseGeocode(lat, lon);
+  // Sposta o crea il marker
+  if (marker) {
+    marker.setLatLng([lat, lon]);
+  } else {
+    marker = L.marker([lat, lon]).addTo(map).bindPopup("Sei qui").openPopup();
+  }
+
+  map.setView([lat, lon], 17);
+  reverseGeocode(lat, lon);
+}
+
+function onLocationError(e) {
+  alert("Errore nel trovare la posizione: " + e.message);
+}
+
+// Attiva il tracciamento continuo
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      aggiornaPosizione(lat, lon);
+    },
+    onLocationError,
+    {
+      enableHighAccuracy: true,
+      maximumAge: 10000,
+      timeout: 5000
     }
+  );
+} else {
+  alert("Geolocalizzazione non supportata dal browser.");
+}
 
-    function onLocationError(e) {
-      alert("Errore nel trovare la posizione: " + e.message);
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      pos => onLocationFound(pos.coords),
-      err => onLocationError(err)
-    );
   </script>
 </body>
 </html>
