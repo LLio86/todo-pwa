@@ -76,14 +76,15 @@ function getPuliziaInfo(via) {
   if (!pulizieGeoJSON) return "Dati non disponibili";
   const features = pulizieGeoJSON.features;
 
-  const match = features.find(f => {
-    const desc = f.properties.description || "";
-    const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
-    return indirizzo && via.toLowerCase().includes(indirizzo);
-  });
+const matches = features.filter(f => {
+  const desc = f.properties.description || "";
+  const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+  return indirizzo && via.toLowerCase().includes(indirizzo);
+});
 
-  if (match) {
-    const desc = match.properties.description || "";
+	if (matches.length > 0) {
+		return matches.map(f => {
+    const desc = f.properties.description || "";
     const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
     const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
     const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
@@ -97,12 +98,17 @@ function getPuliziaInfo(via) {
     const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
 
     return `
-      <strong>${indirizzo}</strong><br>
-      Pulizia ogni <strong>${giornoNome}</strong><br>
-      Dalle <strong>${oraInizio}</strong> alle <strong>${oraFine}</strong><br>
-      <em>${tratto}</em>
+      <div class="pulizia-entry">
+        <strong>${indirizzo}</strong><br>
+        Pulizia ogni <strong>${giornoNome}</strong><br>
+        Dalle <strong>${oraInizio}</strong> alle <strong>${oraFine}</strong><br>
+        <em>${tratto}</em>
+        <hr>
+      </div>
     `;
-  } else {
+  }).join(""); // unisci tutti i blocchi HTML in una sola stringa
+}
+ else {
     return "Nessuna pulizia programmata per questa via.";
   }
 }
