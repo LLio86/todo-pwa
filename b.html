@@ -74,44 +74,56 @@
     
 function getPuliziaInfo(via) {
   if (!pulizieGeoJSON) return "Dati non disponibili";
+
   const features = pulizieGeoJSON.features;
 
-const matches = features.filter(f => {
-  const desc = f.properties.description || "";
-  const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
-  return indirizzo && via.toLowerCase().includes(indirizzo);
-});
-
-	if (matches.length > 0) {
-		return matches.map(f => {
+  const matches = features.filter(f => {
     const desc = f.properties.description || "";
-    const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
-    const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
-    const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
-    const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
-    const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+    return indirizzo && via.toLowerCase().includes(indirizzo);
+  });
 
-    const giorni = {
-      LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
-      GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
-    };
-    const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
+  if (matches.length > 0) {
+    return matches.map(f => {
+      const desc = f.properties.description || "";
 
-    return `
-      <div class="pulizia-entry">
-        <strong>${indirizzo}</strong><br>
-        Pulizia ogni <strong>${giornoNome}</strong><br>
-        Dalle <strong>${oraInizio}</strong> alle <strong>${oraFine}</strong><br>
-        <em>${tratto}</em>
-        <hr>
-      </div>
-    `;
-  }).join(""); // unisci tutti i blocchi HTML in una sola stringa
-}
- else {
+      const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
+      const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
+      const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
+      const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
+      const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+      const settimane = [];
+      if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+      if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+      if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+      if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+      if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+      const settimaneText = settimane.length > 0 ? settimane.join(", ") : "non specificate";
+
+      const giorni = {
+        LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+        GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+      };
+      const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
+
+      return `
+        <div class="pulizia-entry">
+          <strong>${indirizzo}</strong><br>
+          Giorno: <strong>${giornoNome}</strong><br>
+          Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
+          Settimane: <strong>${settimaneText}</strong><br>
+          Tratto: <em>${tratto}</em>
+          <hr>
+        </div>
+      `;
+    }).join("");
+  } else {
     return "Nessuna pulizia programmata per questa via.";
   }
 }
+
 
 
     function reverseGeocode(lat, lon) {
