@@ -61,7 +61,7 @@
 
   // Trova la prima feature che contiene la via cercata nel campo "indirizzo"
   const match = features.find(f => {
-    const indirizzo = f.properties.indirizzo?.toLowerCase() || "";
+    const indirizzo = f.properties.description?.toLowerCase() || "";
     return via.toLowerCase().includes(indirizzo);
   });
 
