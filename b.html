@@ -72,7 +72,7 @@
     const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
     console.log('Match trovato:', match.properties.name);
     document.getElementById('pulizia').innerHTML = match.properties.description;
-    return `Pulizia strade: Giorno: ${giornoNome}, Orario: ${match.properties.ora_inizio} - ${match.properties.ora_fine}, Indirizzo: ${match.properties.description}`;
+    return `Pulizia strade: Indirizzo: ${match.properties.description}`;
   } else {
     return "Nessuna pulizia programmata per questa via.";
   }
