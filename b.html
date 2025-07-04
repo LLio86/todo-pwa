@@ -29,6 +29,7 @@
     <p><strong>Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
     <p><strong>Coordinate GPS:</strong> <span id="coords">-</span></p>
     <p><strong>Pulizia strade:</strong> <span id="pulizia">Ricerca in corso...</span></p>
+    
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
@@ -70,6 +71,7 @@
     const giornoCod = match.properties.giorno_settimana || "ND";
     const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
     console.log('Match trovato:', match.properties.name);
+    document.getElementById('pulizia').innerHTML = match.properties.description;
     return `Pulizia strade: Giorno: ${giornoNome}, Orario: ${match.properties.ora_inizio} - ${match.properties.ora_fine}, Indirizzo: ${match.properties.description}`;
   } else {
     return "Nessuna pulizia programmata per questa via.";
