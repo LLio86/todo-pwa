@@ -29,17 +29,15 @@
     <p><strong>Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
     <p><strong>Coordinate GPS:</strong> <span id="coords">-</span></p>
     <p><strong>Pulizia strade:</strong> <span id="pulizia">Ricerca in corso...</span></p>
-    
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     const addressEl = document.getElementById("address");
     const coordsEl = document.getElementById("coords");
     const puliziaEl = document.getElementById("pulizia");
-    const map = L.map('map').setView([43.7696, 11.2558], 15); // centro Firenze
+    const map = L.map('map').setView([43.7696, 11.2558], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19
@@ -47,119 +45,133 @@
 
     let pulizieGeoJSON = null;
 
-    // Carica il file GeoJSON
     fetch('pulizia_firenze.geojson')
       .then(response => response.json())
       .then(data => {
         pulizieGeoJSON = data;
         console.log("Dati pulizia caricati:", data);
       });
-	  
-	  
 
-	  
-	  function estraiValoreDescrizione(html, chiave) {
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  const items = div.querySelectorAll("li");
-  for (const li of items) {
-    const nome = li.querySelector(".atr-name")?.textContent?.trim().toLowerCase();
-    const valore = li.querySelector(".atr-value")?.textContent?.trim();
-    if (nome === chiave.toLowerCase()) {
-      return valore;
+    function estraiValoreDescrizione(html, chiave) {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      const items = div.querySelectorAll("li");
+      for (const li of items) {
+        const nome = li.querySelector(".atr-name")?.textContent?.trim().toLowerCase();
+        const valore = li.querySelector(".atr-value")?.textContent?.trim();
+        if (nome === chiave.toLowerCase()) {
+          return valore;
+        }
+      }
+      return null;
     }
-  }
-  return null;
-}
 
-	  
-    
-function getPuliziaInfo(via) {
-  if (!pulizieGeoJSON) return "Dati non disponibili";
-
-  const features = pulizieGeoJSON.features;
-
-  const matches = features.filter(f => {
-    const desc = f.properties.description || "";
-    const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
-    return indirizzo && via.toLowerCase().includes(indirizzo);
-  });
-
-  if (matches.length > 0) {
-    return matches.map(f => {
-      const desc = f.properties.description || "";
-
-      const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
-      const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
-      const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
-      const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
-      const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
-
-      const settimane = [];
-      if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
-      if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
-      if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
-      if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
-      if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
-
-      const settimaneText = settimane.length > 0 ? settimane.join(", ") : "non specificate";
-
-      const giorni = {
-        LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
-        GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+    function calcolaProssimaDataPulizia(giornoSettimana, settimaneValide) {
+      const giorniSettimana = {
+        'Lunedì': 1,
+        'Martedì': 2,
+        'Mercoledì': 3,
+        'Giovedì': 4,
+        'Venerdì': 5,
+        'Sabato': 6,
+        'Domenica': 0
       };
-      const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
 
-      return `
-        <div class="pulizia-entry">
-          <strong>${indirizzo}</strong><br>
-          Giorno: <strong>${giornoNome}</strong><br>
-          Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
-          Settimane: <strong>${settimaneText}</strong><br>
-          Tratto: <em>${tratto}</em>
-          <hr>
-        </div>
-      `;
-    }).join("");
-  } else {
-    return "Nessuna pulizia programmata per questa via.";
-  }
-}
+      const oggi = new Date();
+      const meseCorrente = oggi.getMonth();
+      const annoCorrente = oggi.getFullYear();
 
+      function trovaDateNelMese(mese, anno) {
+        const date = [];
+        let settimana = 1;
+        for (let giorno = 1; giorno <= 31; giorno++) {
+          const data = new Date(anno, mese, giorno);
+          if (data.getMonth() !== mese) break;
+          if (data.getDay() === giorniSettimana[giornoSettimana]) {
+            date.push({ data, settimana });
+            settimana++;
+          }
+        }
+        return date;
+      }
 
-function calcolaProssimaPulizia(giornoCod, settimaneAbilitate) {
-  const oggi = new Date();
-  let mese = oggi.getMonth();
-  let anno = oggi.getFullYear();
+      function trovaProssima(dataList) {
+        return dataList.find(({ data, settimana }) => {
+          const weekNum = `${settimana}ª`;
+          return settimaneValide.includes(weekNum) && data >= oggi;
+        });
+      }
 
-  const giorniSettimana = ["DO", "LU", "MA", "ME", "GI", "VE", "SA"];
-  const targetGiorno = giorniSettimana.indexOf(giornoCod);
+      const dateMeseCorrente = trovaDateNelMese(meseCorrente, annoCorrente);
+      const matchCorrente = trovaProssima(dateMeseCorrente);
 
-  // Cerca nei prossimi 2 mesi
-  for (let m = 0; m < 2; m++) {
-    for (let settimana of settimaneAbilitate) {
-      // Calcola il primo giorno del mese corrente
-      const primoGiornoDelMese = new Date(anno, mese, 1);
-      let giorno = 1 + (settimana - 1) * 7;
+      if (matchCorrente) return matchCorrente.data;
 
-      // Cerca il giorno esatto (es. giovedì della 2ª settimana)
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(anno, mese, giorno + i);
-        if (d.getMonth() !== mese) continue; // non oltrepassare il mese
-        if (d.getDay() === targetGiorno && d >= oggi) return d;
+      const meseSuccessivo = (meseCorrente + 1) % 12;
+      const annoSuccessivo = meseCorrente === 11 ? annoCorrente + 1 : annoCorrente;
+      const dateMeseSuccessivo = trovaDateNelMese(meseSuccessivo, annoSuccessivo);
+      const matchSuccessivo = trovaProssima(dateMeseSuccessivo);
+
+      return matchSuccessivo?.data || null;
+    }
+
+    function getPuliziaInfo(via) {
+      if (!pulizieGeoJSON) return "Dati non disponibili";
+
+      const features = pulizieGeoJSON.features;
+
+      const matches = features.filter(f => {
+        const desc = f.properties.description || "";
+        const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+        return indirizzo && via.toLowerCase().includes(indirizzo);
+      });
+
+      if (matches.length > 0) {
+        return matches.map(f => {
+          const desc = f.properties.description || "";
+
+          const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
+          const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
+          const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
+          const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
+          const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+          const settimane = [];
+          if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+          if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+          if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+          if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+          if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+          const settimaneText = settimane.length > 0 ? settimane.join(", ") : "non specificate";
+
+          const giorni = {
+            LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+            GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+          };
+          const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
+
+          const prossimaData = calcolaProssimaDataPulizia(giornoNome, settimane);
+          const prossimaDataStr = prossimaData
+            ? prossimaData.toLocaleDateString("it-IT", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+            : "Data non trovata";
+
+          return `
+            <div class="pulizia-entry">
+              <strong>${indirizzo}</strong><br>
+              Giorno: <strong>${giornoNome}</strong><br>
+              Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
+              Settimane: <strong>${settimaneText}</strong><br>
+              Prossima data: <strong>${prossimaDataStr}</strong><br>
+              Tratto: <em>${tratto}</em>
+              <hr>
+            </div>
+          `;
+        }).join("");
+      } else {
+        return "Nessuna pulizia programmata per questa via.";
       }
     }
-    // mese successivo
-    mese = (mese + 1) % 12;
-    if (mese === 0) anno++;
-  }
-
-  return new Date(); // fallback: oggi
-}
-
-
-
-
 
     function reverseGeocode(lat, lon) {
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
@@ -172,45 +184,42 @@ function calcolaProssimaPulizia(giornoCod, settimaneAbilitate) {
         });
     }
 
-let marker = null;
+    let marker = null;
 
-function aggiornaPosizione(lat, lon) {
-  coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    function aggiornaPosizione(lat, lon) {
+      coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
-  // Sposta o crea il marker
-  if (marker) {
-    marker.setLatLng([lat, lon]);
-  } else {
-    marker = L.marker([lat, lon]).addTo(map).bindPopup("Sei qui").openPopup();
-  }
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = L.marker([lat, lon]).addTo(map).bindPopup("Sei qui").openPopup();
+      }
 
-  map.setView([lat, lon], 17);
-  reverseGeocode(lat, lon);
-}
-
-function onLocationError(e) {
-  alert("Errore nel trovare la posizione: " + e.message);
-}
-
-// Attiva il tracciamento continuo
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      aggiornaPosizione(lat, lon);
-    },
-    onLocationError,
-    {
-      enableHighAccuracy: true,
-      maximumAge: 10000,
-      timeout: 5000
+      map.setView([lat, lon], 17);
+      reverseGeocode(lat, lon);
     }
-  );
-} else {
-  alert("Geolocalizzazione non supportata dal browser.");
-}
 
+    function onLocationError(e) {
+      alert("Errore nel trovare la posizione: " + e.message);
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          aggiornaPosizione(lat, lon);
+        },
+        onLocationError,
+        {
+          enableHighAccuracy: true,
+          maximumAge: 10000,
+          timeout: 5000
+        }
+      );
+    } else {
+      alert("Geolocalizzazione non supportata dal browser.");
+    }
   </script>
 </body>
 </html>
