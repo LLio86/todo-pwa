@@ -20,6 +20,17 @@
     .info {
       margin-top: 1em;
     }
+
+    .highlight-date {
+      background-color: #ffeeba; /* giallo chiaro */
+      padding: 0.2em 0.4em;
+      border-radius: 5px;
+      font-weight: bold;
+      color: #856404;
+    }
+
+
+    
   </style>
 </head>
 <body>
@@ -162,7 +173,7 @@
               Giorno: <strong>${giornoNome}</strong><br>
               Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
               Settimane: <strong>${settimaneText}</strong><br>
-              Prossima data: <strong>${prossimaDataStr}</strong><br>
+              Prossima data: <span class="highlight-date">${prossimaDataStr}</span><br>
               Tratto: <em>${tratto}</em>
               <hr>
             </div>
