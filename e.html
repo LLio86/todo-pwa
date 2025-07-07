@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto in Movimento su Mappa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+  />
+  <style>
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>🚗 Auto in Tempo Reale</h2>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([43.7696, 11.2558], 15); // Firenze
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // Icona auto personalizzata
+    const autoIcon = L.icon({
+      iconUrl: 'sedan.png', // Puoi sostituire con la tua
+      iconSize:     [50, 50],
+      iconAnchor:   [25, 50],
+      popupAnchor:  [0, -40]
+    });
+
+    let marker = null;
+
+    // Funzione animazione fluida
+    function animateMoveMarker(marker, newLat, newLng, duration = 1000) {
+      const start = marker.getLatLng();
+      const deltaLat = newLat - start.lat;
+      const deltaLng = newLng - start.lng;
+      const startTime = performance.now();
+
+      function step(timestamp) {
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const currentLat = start.lat + deltaLat * progress;
+        const currentLng = start.lng + deltaLng * progress;
+        marker.setLatLng([currentLat, currentLng]);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // Aggiorna posizione in tempo reale
+    function onLocationFound(pos) {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      if (!marker) {
+        marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map)
+          .bindPopup("🚗 Sei qui")
+          .openPopup();
+        map.setView([lat, lon], 17);
+      } else {
+        animateMoveMarker(marker, lat, lon);
+      }
+    }
+
+    function onLocationError(e) {
+      alert("Errore nel trovare la posizione: " + e.message);
+    }
+
+    // Attiva il tracking continuo
+    navigator.geolocation.watchPosition(onLocationFound, onLocationError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 5000
+    });
+  </script>
+</body>
+</html>
