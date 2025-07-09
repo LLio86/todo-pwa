@@ -3,8 +3,8 @@
   "short_name": "Pulizia strade",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#317E00",
+  "background_color": "#5A328C",
+  "theme_color": "#5A328C",
   "icons": [{
     "src": "icona.png",
     "sizes": "192x192",
