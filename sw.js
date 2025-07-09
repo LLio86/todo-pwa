@@ -4,7 +4,10 @@ const filesToCache = [
   '/index.html',
   '/style.css',
   '/app.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/sedan.png',
+  '/pulizia_firenze.geojson',
+  '/icona.png'
 ];
 
 self.addEventListener('install', event => {
