@@ -42,9 +42,9 @@ function showIosInstallMessage() {
 
   if (isIos && !isInStandalone) {
     const msg = document.createElement('div');
-    msg.innerHTML = "
-      📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>"Aggiungi a Home"</b>.
-    ";
+    msg.innerHTML = '
+      📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>Aggiungi a Home</b>.
+    ';
     msg.style.cssText = '
       position: fixed;
       bottom: 10px;
