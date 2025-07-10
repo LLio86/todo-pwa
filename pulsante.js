@@ -47,7 +47,7 @@ function showIosInstallMessage() {
   📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>"Aggiungi a Home"</b>.
 `     
       ;
-    msg.style.cssText = '
+    msg.style.cssText = `
       position: fixed;
       bottom: 10px;
       left: 10px;
@@ -60,7 +60,7 @@ function showIosInstallMessage() {
       z-index: 9999;
       box-shadow: 0 0 8px rgba(0,0,0,0.2);
       font-family: sans-serif;
-    ';
+    `;
     document.body.appendChild(msg);
   }
 }
