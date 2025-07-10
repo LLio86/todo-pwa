@@ -20,7 +20,7 @@
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f6fa;
+      background: #bdc3c7;
       color: #5a328c;
 }
     .info {
@@ -40,8 +40,17 @@
 }
 
 
-.pulizia-entry strong {
-  color: #5A328C;
+.pulizia-entry hr {
+  display: none;
+}
+
+.pulizia-entry {
+  background: #ecf0f1;
+  padding: 0.8em;
+  margin-bottom: 0.5em;
+  border-left: 5px solid #5A328C;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
     
@@ -55,8 +64,9 @@
   <div class="info">
     <p><strong>Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
     <p><strong>Coordinate GPS:</strong> <span id="coords">-</span></p>
-    <p><strong></strong> <span id="pulizia">Ricerca in corso...</span></p>
   </div>
+    <p><strong></strong> <span id="pulizia">Ricerca in corso...</span></p>
+  
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
