@@ -7,7 +7,9 @@ const filesToCache = [
   '/manifest.json',
   '/sedan.png',
   '/pulizia_firenze.geojson',
-  '/icona.png'
+  '/icona.png',
+  '/pulsante.js'
+  
 ];
 
 self.addEventListener('install', event => {
