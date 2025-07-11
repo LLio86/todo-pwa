@@ -8,7 +8,9 @@ const filesToCache = [
   '/sedan.png',
   '/pulizia_firenze.geojson',
   '/icona.png',
-  '/pulsante.js'
+  '/pulsante.js',
+  '/stile.css',
+  '/codice.js'
   
 ];
 
