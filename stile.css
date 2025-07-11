@@ -1,0 +1,41 @@
+#map {
+      height: 30vh;
+		  width: 100%;
+		  border-radius: 8px;
+		  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+		  margin-bottom: 1em; 
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #bdc3c7;
+      color: #5a328c;
+}
+    .info {
+      background: #ecf0f1;
+      padding: 0.2em;
+      margin-bottom: 0.2em;
+      border-left: 5px solid #5A328C;
+      border-radius: 6px;
+}
+
+    .highlight-date {
+      background-color: #ffeeba; /* giallo chiaro */
+      padding: 0.2em 0.4em;
+      border-radius: 5px;
+      font-weight: bold;
+      color: #856404;
+}
+
+
+.pulizia-entry hr {
+  display: none;
+}
+
+.pulizia-entry {
+  background: #ecf0f1;
+  padding: 0.8em;
+  margin-bottom: 0.5em;
+  border-left: 5px solid #5A328C;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
