@@ -1,41 +1,88 @@
+/* Reset base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Corpo */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #e8ebf1;
+  color: #333;
+  line-height: 1.5;
+  padding: 0;
+}
+
+/* Barra superiore */
+.header-bar {
+  background-color: #5a328c;
+  color: white;
+  padding: 1em 1.5em;
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-bottom: 3px solid #472776;
+}
+
+/* Mappa */
 #map {
-      height: 30vh;
-		  width: 100%;
-		  border-radius: 8px;
-		  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-		  margin-bottom: 1em; 
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #bdc3c7;
-      color: #5a328c;
-}
-    .info {
-      background: #ecf0f1;
-      padding: 0.2em;
-      margin-bottom: 0.2em;
-      border-left: 5px solid #5A328C;
-      border-radius: 6px;
+  height: 30vh;
+  width: 100%;
+  border-radius: 12px;
+  margin: 1em auto;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
-    .highlight-date {
-      background-color: #ffeeba; /* giallo chiaro */
-      padding: 0.2em 0.4em;
-      border-radius: 5px;
-      font-weight: bold;
-      color: #856404;
+/* Contenitori info */
+.info, .pulizia-entry {
+  background-color: #ffffff;
+  margin: 1em 1.5em;
+  padding: 1em 1.2em;
+  border-radius: 10px;
+  border-left: 5px solid #5a328c;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s ease;
 }
 
-
-.pulizia-entry hr {
-  display: none;
+.info:hover, .pulizia-entry:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
-.pulizia-entry {
-  background: #ecf0f1;
-  padding: 0.8em;
-  margin-bottom: 0.5em;
-  border-left: 5px solid #5A328C;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* Titoli e dettagli */
+.info p, .pulizia-entry p, .pulizia-entry strong {
+  margin-bottom: 0.4em;
+  color: #333;
+}
+
+.pulizia-entry strong {
+  color: #5a328c;
+}
+
+/* Evidenzia prossima data */
+.highlight-date {
+  background-color: #ffeeba;
+  padding: 0.2em 0.5em;
+  border-radius: 5px;
+  font-weight: bold;
+  color: #856404;
+}
+
+/* Tratto in corsivo */
+.pulizia-entry em {
+  font-style: italic;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header-bar {
+    font-size: 1.2em;
+  }
+
+  .info, .pulizia-entry {
+    margin: 0.8em 1em;
+    padding: 0.8em 1em;
+  }
 }
