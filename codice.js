@@ -128,7 +128,6 @@ const addressEl = document.getElementById("address");
               Settimane: <strong>${settimaneText}</strong><br>
               Prossima data: <span class="highlight-date">${prossimaDataStr}</span><br>
               Tratto: <em>${tratto}</em>
-              <hr>
             </div>
           `;
         }).join("");
