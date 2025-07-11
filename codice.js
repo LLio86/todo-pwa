@@ -127,7 +127,7 @@ const addressEl = document.getElementById("address");
               Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
               Settimane: <strong>${settimaneText}</strong><br>
               Prossima data: <span class="highlight-date">${prossimaDataStr}</span><br>
-              Tratto: <em>${tratto}</em>
+              ${tratto ? `Tratto: <em>${tratto}</em>` : ""}
             </div>
           `;
         }).join("");
