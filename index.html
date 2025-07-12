@@ -43,6 +43,28 @@
   </div>
 </div>
 
+
+<button onclick="richiediNotifiche()">Chiedi permesso notifiche</button>
+
+<script>
+function richiediNotifiche() {
+  if (!('Notification' in window)) {
+    alert("Notifiche non supportate");
+    return;
+  }
+
+  Notification.requestPermission().then(permission => {
+    alert("Permesso: " + permission);
+
+    if (permission === "granted") {
+      new Notification("✅ Notifica abilitata!", {
+        body: "Funziona su iOS Safari installato!",
+      });
+    }
+  });
+}
+</script>
+
   
 </body>
 </html>
