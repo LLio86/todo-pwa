@@ -192,3 +192,23 @@ const addressEl = document.getElementById("address");
     } else {
       alert("Geolocalizzazione non supportata dal browser.");
     }
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        // Mostra una notifica ogni 10 minuti
+        setInterval(() => {
+          new Notification("🧹 Promemoria Pulizia Strade", {
+            body: "Controlla se oggi c'è la pulizia nella tua zona!",
+            icon: "/icona.png" // cambia con il tuo file se diverso
+          });
+        }, 10000); // 600000 ms = 10 minuti
+      } else {
+        console.log("❌ Permesso notifiche non concesso.");
+      }
+    });
+  }
+});
