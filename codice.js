@@ -212,3 +212,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  if ('Notification' in window && navigator.serviceWorker) {
+    Notification.requestPermission().then(permission => {
+      console.log("Permesso notifiche:", permission);
+
+      if (permission === 'granted') {
+        // Notifica di prova
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) {
+            reg.showNotification("🔔 Notifica Test", {
+              body: "Funziona su iPhone?",
+              icon: "/icona.png"
+            });
+          }
+        });
+
+        // Notifica ogni 10 minuti
+        setInterval(() => {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) {
+              reg.showNotification("🧹 Promemoria Pulizia", {
+                body: "Controlla se oggi c'è la pulizia strade!",
+                icon: "/icona.png"
+              });
+            }
+          });
+        }, 600000);
+      } else {
+        alert("Permesso notifiche non concesso: " + permission);
+      }
+    });
+  } else {
+    alert("Notifiche non supportate");
+  }
+});
