@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
               });
             }
           });
-        }, 600000);
+        }, 10000);
       } else {
         alert("Permesso notifiche non concesso: " + permission);
       }
